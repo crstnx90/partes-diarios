@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parte Diario — Hospital Naval Nivel III Cartagena</title>
+<link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+
+<!-- APP HEADER -->
+<div class="app-header">
+  <div class="anchor-icon">
+  <img src="./src/logo-honac.png" />
+</div>
+  <div class="header-text">
+    <h1>Hospital Naval Nivel III — Cartagena</h1>
+    <p>Sistema de Partes Diarios de Personal Militar</p>
+  </div>
+  <div class="header-right" style="display:flex;align-items:center;gap:10px;">
+    <button onclick="importarJSON()" style="background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);color:var(--gold-light);padding:6px 14px;border-radius:5px;cursor:pointer;font-size:0.75rem;letter-spacing:0.06em;font-family:'Source Serif 4',serif;" title="Importar backup JSON">📂 Importar</button>
+    <button onclick="exportarJSON()" style="background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.4);color:var(--gold-light);padding:6px 14px;border-radius:5px;cursor:pointer;font-size:0.75rem;letter-spacing:0.06em;font-family:'Source Serif 4',serif;" title="Exportar todos los datos como JSON">💾 Exportar JSON</button>
+    <div class="current-date-display" id="currentDateDisplay"></div>
+  </div>
+</div>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span>Días Hábiles 2026</span>
+    </div>
+    <div id="dayList"></div>
+    <button class="new-day-btn" onclick="showNewDayForm()">＋ Registrar nuevo parte</button>
+  </div>
+
+  <!-- MAIN PANEL -->
+  <div class="main-panel" id="mainPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="big-icon">📋</div>
+      <p>Seleccione un día para ver o editar el parte diario</p>
+    </div>
+
+    <!-- EDITOR VIEW -->
+    <div class="parte-editor" id="editorView" style="display:none;">
+      <div class="editor-view">
+        <div class="parte-date-heading" id="editorDateHeading"></div>
+        <div class="parte-subtitle" id="editorDateSub"></div>
+
+        <!-- TOE Cards -->
+        <div class="section-title">📊 Total Orgánico de Estructura (TOE) — Disponibles</div>
+        <div class="toe-cards">
+          <div class="toe-card oficiales">
+            <div class="toe-label">Oficiales</div>
+            <div class="toe-numbers">
+              <div class="toe-avail" id="card-avail-of">—</div>
+              <div class="toe-of-total">/ <span id="card-toe-of">—</span></div>
+            </div>
+          </div>
+          <div class="toe-card suboficiales">
+            <div class="toe-label">Suboficiales</div>
+            <div class="toe-numbers">
+              <div class="toe-avail" id="card-avail-so">—</div>
+              <div class="toe-of-total">/ <span id="card-toe-so">—</span></div>
+            </div>
+          </div>
+          <div class="toe-card imp">
+            <div class="toe-label">IMP</div>
+            <div class="toe-numbers">
+              <div class="toe-avail" id="card-avail-imp">—</div>
+              <div class="toe-of-total">/ <span id="card-toe-imp">—</span></div>
+            </div>
+          </div>
+          <div class="toe-card total-card">
+            <div class="toe-label">Total Disponibles</div>
+            <div class="toe-numbers">
+              <div class="toe-avail" id="card-avail-total">—</div>
+              <div class="toe-of-total">/ <span id="card-toe-total">—</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Novedades Table -->
+        <div class="section-title">📝 Novedades del Día</div>
+        <table class="novedades-table">
+          <thead>
+            <tr>
+              <th style="width:38%">Novedad</th>
+              <th>Oficiales</th>
+              <th>Suboficiales</th>
+              <th>IMP</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="novedadesBody"></tbody>
+        </table>
+
+        <!-- Observaciones -->
+        <div class="obs-section">
+          <div class="section-title">🗒 Observaciones / Novedades Específicas</div>
+          <div class="obs-list" id="obsList"></div>
+          <button class="add-obs-btn" onclick="addObservacion()">+ Agregar observación</button>
+        </div>
+
+        <!-- Director -->
+        <div class="obs-section">
+          <div class="section-title">✍️ Datos para la Firma</div>
+          <div class="director-section">
+            <div class="director-fields">
+              <div class="field-group">
+                <label class="field-label">Grado y Nombre del Director</label>
+                <input class="field-input" id="directorNombre" value="Capitán de Navío IVÁN ANDRÉS PELÁEZ SOTELO" oninput="markDirty()">
+              </div>
+              <div class="field-group">
+                <label class="field-label">Cargo</label>
+                <input class="field-input" id="directorCargo" value="Director Hospital Naval Nivel III Cartagena" oninput="markDirty()">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="action-bar">
+          <button class="btn-save" onclick="saveCurrentDay()">💾 Guardar</button>
+          <button class="btn-print" onclick="printParte()">🖨️ Imprimir Parte</button>
+        </div>
+      </div>
+
+      <!-- PRINT FORMAT (hidden on screen, shown on print) -->
+      <div class="print-parte" id="printParte"></div>
+    </div>
+
+    <!-- NEW DAY FORM -->
+    <div id="newDayForm" style="display:none;">
+      <div class="new-day-form">
+        <h2>📅 Registrar Nuevo Parte Diario</h2>
+        <div class="field-group" style="margin-bottom:16px;">
+          <label class="form-label">Fecha del parte</label>
+          <input type="date" class="form-input" id="newDayDate" style="max-width:220px;">
+          <div id="dateWarning" style="color:#8b1a1a;font-size:0.78rem;margin-top:4px;display:none;"></div>
+        </div>
+
+        <div class="section-title" style="font-size:0.78rem;">TOE (Total Orgánico de Estructura)</div>
+        <div class="form-grid toe-grid" style="margin-bottom:20px;">
+          <div>
+            <label class="form-label">Oficiales TOE</label>
+            <input type="number" class="form-input" id="newToeOf" min="0" value="48">
+          </div>
+          <div>
+            <label class="form-label">Suboficiales TOE</label>
+            <input type="number" class="form-input" id="newToeSo" min="0" value="90">
+          </div>
+          <div>
+            <label class="form-label">IMP TOE</label>
+            <input type="number" class="form-input" id="newToeImp" min="0" value="11">
+          </div>
+        </div>
+
+        <div class="section-title" style="font-size:0.78rem;">Novedades iniciales (puede editar después)</div>
+        <div id="novFormRows"></div>
+
+        <div class="form-actions">
+          <button class="btn-cancel" onclick="cancelNewDay()">Cancelar</button>
+          <button class="btn-save" onclick="createNewDay()">Crear Parte</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="./js/app.js"></script>
+</body>
+</html>
