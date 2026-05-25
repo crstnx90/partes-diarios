@@ -39,10 +39,18 @@
   }
 
   .anchor-icon {
-    font-size: 36px;
-    color: var(--gold);
-    text-shadow: 0 0 20px rgba(201,168,76,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    height: 65px;
+    width: auto; 
+  }
+
+  .anchor-icon img {
+    height: 100%;
+    width: auto;
+    object-fit: contain;
   }
 
   .header-text h1 {
